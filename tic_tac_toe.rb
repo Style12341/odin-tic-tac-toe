@@ -89,3 +89,65 @@ class Board
     @board[move[0]][move[1]] = symbol
   end
 end
+
+# TicTacToe Class
+class TicTacToe < Game
+  attr_accessor :empty_cells, :state
+
+  def initialize
+    super(3)
+    @player1 = Player.new('X', 'Player 1')
+    @player2 = Player.new('O', 'Player 2')
+    @current_player = @player1
+    @empty_cells = 9
+    @state = 'playing'
+  end
+
+  def play
+    @board.display_board
+    while @empty_cells.positive? && @state == 'playing'
+      begin
+        move = read_move
+      rescue StandardError => e
+        puts "Enter a correct move: #{e.message}"
+        retry
+      else
+        @board.move(move, @current_player.symbol)
+        @empty_cells -= 1
+        @board.display_board
+        if @board.winner?
+          @state = 'winner'
+          announce_winner
+        end
+        @state = 'draw' if @empty_cells.zero?
+        switch_player
+      end
+    end
+  end
+
+  def read_move
+    puts "#{@current_player.name} enter your move: row col"
+    move = gets.chomp.split.map { |i| i.to_i - 1 }
+    raise 'Invalid move' unless @board.valid_move?(move[0], move[1])
+    raise 'Invalid move' if move[0] > 2 || move[1] > 2
+
+    move
+  end
+
+  def switch_player
+    @current_player = @current_player == @player1 ? @player2 : @player1
+  end
+
+  def announce_winner
+    puts "The winner is #{@current_player.name}"
+    puts 'Do you want to play again? (y/n)'
+    play_again = gets.chomp
+    return unless play_again == 'y'
+
+    game = TicTacToe.new
+    game.play
+  end
+end
+
+game = TicTacToe.new
+game.play
